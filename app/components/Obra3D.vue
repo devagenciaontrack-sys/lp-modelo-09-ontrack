@@ -55,29 +55,64 @@ async function iniciar() {
   cena.add(frio)
 
   const COR = {
-    bloco: [0x9fa3ab, 0x8e929b, 0xaeb2ba, 0x95999f],
-    areia: 0x6d665c,
-    terra: 0x5e5347,
-    grama: 0x5a6b43,
-    concreto: 0xc3c7ce,
-    junta: 0x9aa0a8,
-    guia: 0xd7dade,
-    guiaFace: 0xb9bdc4,
-    sarjeta: 0xcfd3d9,
-    asfalto: 0x3a3d45,
-    faixa: 0xd8c45a,
+    bloco: [0xadb0b3, 0xa1a4a8, 0xbabdc0, 0xa8abaf],
+    areia: 0x8d8372,
+    terra: 0x6b5d4a,
+    grama: 0x5f7342,
+    concreto: 0xc2c4c5,
+    guia: 0xd4d6d6,
+    guiaFace: 0xbcbec0,
+    sarjeta: 0xcbcdcd,
+    asfalto: 0x6a6c74,
+    faixa: 0xd9c357,
+    tatil: 0xd8c152,
+    pintura: 0xe8e4da,
+    ferro: 0x33353b,
   }
+
+  // ── texturas feitas no próprio navegador: grão sem baixar arquivo ──
+  const ruido = (base: string, manchas: string[], pontos = 2600, lado = 256) => {
+    const c = document.createElement('canvas')
+    c.width = c.height = lado
+    const x = c.getContext('2d')!
+    x.fillStyle = base
+    x.fillRect(0, 0, lado, lado)
+    for (let i = 0; i < pontos; i++) {
+      x.fillStyle = manchas[i % manchas.length]
+      x.globalAlpha = 0.05 + Math.random() * 0.17
+      x.beginPath()
+      x.arc(Math.random() * lado, Math.random() * lado, Math.random() * 2.6 + 0.4, 0, 7)
+      x.fill()
+    }
+    const tex = new THREE.CanvasTexture(c)
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping
+    tex.colorSpace = THREE.SRGBColorSpace
+    descartar.push(tex)
+    return tex
+  }
+  let texAsfalto: any, texConcreto: any, texGrama: any
+
   const mat = (c: number, r = 0.92) =>
     new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: 0 })
+  // material com grão, com a repetição ajustada ao tamanho da peça
+  const matTex = (c: number, tex: any, repX: number, repY: number, r = 0.95) => {
+    const m = new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: 0, map: tex.clone() })
+    m.map.wrapS = m.map.wrapT = THREE.RepeatWrapping
+    m.map.repeat.set(Math.max(1, repX), Math.max(1, repY))
+    m.map.colorSpace = THREE.SRGBColorSpace
+    descartar.push(m.map, m)
+    return m
+  }
 
   const grupo = new THREE.Group()
   cena.add(grupo)
   const descartar: any[] = []
 
-  const caixaMesh = (w: number, h: number, d: number, c: number) => {
+  const caixaMesh = (w: number, h: number, d: number, c: number, tex?: any) => {
     const g = new THREE.BoxGeometry(w, h, d)
-    const m = mat(c)
-    descartar.push(g, m)
+    const m = tex ? matTex(c, tex, w * 1.4, d * 1.4) : mat(c)
+    descartar.push(g)
+    if (!tex) descartar.push(m)
     const malha = new THREE.Mesh(g, m)
     malha.castShadow = true
     malha.receiveShadow = true
@@ -92,7 +127,7 @@ async function iniciar() {
 
   // chão que se estende além da obra e recebe a sombra
   const chaoGeo = new THREE.PlaneGeometry(1, 1)
-  const chaoMat = mat(0x24262c, 1)
+  const chaoMat = mat(0x3c4049, 1)
   const chao = new THREE.Mesh(chaoGeo, chaoMat)
   chao.rotation.x = -Math.PI / 2
   chao.receiveShadow = true
@@ -101,12 +136,15 @@ async function iniciar() {
   let raio = 10, altura = 0.5, mira = 0
   montar = () => {
     limpar()
+    texAsfalto = ruido('#6a6c74', ['#54565e', '#7e818a', '#45474e'], 3400)
+    texConcreto = ruido('#c2c4c5', ['#aeb1b2', '#d4d6d6', '#9ea1a3'], 2200)
+    texGrama = ruido('#5f7342', ['#4a5c33', '#74894f', '#3d4d2a'], 3000)
     const L = Math.max(1, props.largura)       // profundidade (eixo Z)
     const C = Math.max(1, props.comprimento)   // frente (eixo X)
 
     if (props.servico === 'bloquete') {
       // chão de areia sob o pátio
-      const base = caixaMesh(C + 1.2, 0.3, L + 1.2, COR.areia)
+      const base = caixaMesh(C + 1.2, 0.3, L + 1.2, COR.areia, texConcreto)
       base.position.y = -0.16
       grupo.add(base)
 
@@ -184,7 +222,7 @@ async function iniciar() {
       const terrD = Math.max(1.5, L * 0.35)
 
       // terreno do lote, atrás da calçada
-      const terra = caixaMesh(C + 1.5, 0.5, terrD, COR.grama)
+      const terra = caixaMesh(C + 1.5, 0.5, terrD, COR.grama, texGrama)
       terra.position.set(0, 0.02, -L / 2 - terrD / 2)
       grupo.add(terra)
 
@@ -193,32 +231,62 @@ async function iniciar() {
       sub.position.set(0, -H + (H - 0.1) / 2, 0)
       grupo.add(sub)
 
-      // placas de concreto de 1 m, com junta entre elas
+      // placas de concreto de 1 m, com junta entre elas e tom levemente
+      // diferente em cada uma, como acontece na obra de verdade
       const n = Math.max(1, Math.round(C))
       const larg = C / n
+      const tons = [COR.concreto, 0xbabcbe, 0xcacccd, 0xc6c8c9]
       for (let i = 0; i < n; i++) {
-        const p = caixaMesh(larg - 0.04, 0.1, L - 0.04, COR.concreto)
+        const p = caixaMesh(larg - 0.04, 0.1, L - 0.04, tons[i % tons.length], texConcreto)
         p.position.set(-C / 2 + larg * (i + 0.5), -0.05, 0)
         grupo.add(p)
       }
 
-      // guia na divisa com a rua
-      const guia = caixaMesh(C, H, GUIA.l, COR.guia)
+      // faixa de piso tátil junto da guia, como exige a norma de calçada
+      const tatilD = Math.min(0.4, L * 0.18)
+      const tatil = caixaMesh(C, 0.105, tatilD, COR.tatil)
+      tatil.position.set(0, -0.048, L / 2 - tatilD / 2 - 0.1)
+      grupo.add(tatil)
+      // relevo do piso tátil: barras no sentido do caminho
+      const nb = Math.max(4, Math.round(C * 3))
+      for (let i = 0; i < nb; i++) {
+        const b = caixaMesh(0.035, 0.018, tatilD - 0.06, 0xc9b149)
+        b.position.set(-C / 2 + (C / nb) * (i + 0.5), 0.008, L / 2 - tatilD / 2 - 0.1)
+        grupo.add(b)
+      }
+
+      // guia na divisa com a rua, com a pintura branca da face
+      const guia = caixaMesh(C, H, GUIA.l, COR.guia, texConcreto)
       guia.position.set(0, -H / 2, L / 2 + GUIA.l / 2)
       grupo.add(guia)
+      const pint = caixaMesh(C, H * 0.55, 0.014, COR.pintura)
+      pint.position.set(0, -H * 0.62, L / 2 + GUIA.l + 0.007)
+      grupo.add(pint)
 
       // sarjeta e asfalto, no nível da rua
-      const sarj = caixaMesh(C, 0.06, 0.45, COR.sarjeta)
+      const sarj = caixaMesh(C, 0.06, 0.45, COR.sarjeta, texConcreto)
       sarj.position.set(0, -H + 0.03, L / 2 + GUIA.l + 0.225)
       grupo.add(sarj)
-      const rua = caixaMesh(C + 1.5, 0.12, ruaD, COR.asfalto)
+      const rua = caixaMesh(C + 1.5, 0.12, ruaD, COR.asfalto, texAsfalto)
       rua.position.set(0, -H, L / 2 + GUIA.l + 0.45 + ruaD / 2)
       grupo.add(rua)
+
+      // boca de lobo encostada na guia
+      if (C > 2.5) {
+        const bl = caixaMesh(0.7, 0.07, 0.4, COR.ferro)
+        bl.position.set(C * 0.28, -H + 0.035, L / 2 + GUIA.l + 0.22)
+        grupo.add(bl)
+        for (let i = 0; i < 4; i++) {
+          const gr = caixaMesh(0.62, 0.02, 0.035, 0x55575e)
+          gr.position.set(C * 0.28, -H + 0.08, L / 2 + GUIA.l + 0.1 + i * 0.08)
+          grupo.add(gr)
+        }
+      }
       const faixa = caixaMesh(C * 0.45, 0.02, 0.1, COR.faixa)
       faixa.position.set(0, -H + 0.07, L / 2 + GUIA.l + 0.45 + ruaD * 0.75)
       grupo.add(faixa)
 
-      raio = Math.max(C, L + ruaD + terrD) * 0.78 + 2.5
+      raio = Math.max(C, L + ruaD + terrD) * 0.92 + 2.5
       altura = 0.42; mira = -0.12
     }
 
@@ -230,10 +298,10 @@ async function iniciar() {
       const ruaD = 3
 
       // passeio no alto da guia
-      const base = caixaMesh(Cv, H - 0.1, passeioD, COR.terra)
+      const base = caixaMesh(Cv, H - 0.1, passeioD, COR.terra, texConcreto)
       base.position.set(0, -H + (H - 0.1) / 2, -passeioD / 2 - GUIA.l / 2)
       grupo.add(base)
-      const passeio = caixaMesh(Cv, 0.1, passeioD, COR.concreto)
+      const passeio = caixaMesh(Cv, 0.1, passeioD, COR.concreto, texConcreto)
       passeio.position.set(0, -0.05, -passeioD / 2 - GUIA.l / 2)
       grupo.add(passeio)
 
@@ -241,23 +309,36 @@ async function iniciar() {
       const n = Math.max(1, Math.round(Cv / GUIA.c))
       const cada = Cv / n
       for (let i = 0; i < n; i++) {
-        const g = caixaMesh(cada - 0.025, H, GUIA.l, COR.guia)
+        const g = caixaMesh(cada - 0.025, H, GUIA.l, COR.guia, texConcreto)
         g.position.set(-Cv / 2 + cada * (i + 0.5), -H / 2, 0)
         grupo.add(g)
-        const f = caixaMesh(cada - 0.025, H - 0.03, 0.014, COR.guiaFace)
-        f.position.set(-Cv / 2 + cada * (i + 0.5), -H / 2 - 0.015, GUIA.l / 2 + 0.008)
+        // pintura branca na face voltada para a rua
+        const f = caixaMesh(cada - 0.03, H * 0.55, 0.014, COR.pintura)
+        f.position.set(-Cv / 2 + cada * (i + 0.5), -H * 0.62, GUIA.l / 2 + 0.008)
         grupo.add(f)
       }
 
       // sarjeta encostada na guia e asfalto
-      const sarj = caixaMesh(Cv, 0.06, 0.45, COR.sarjeta)
+      const sarj = caixaMesh(Cv, 0.06, 0.45, COR.sarjeta, texConcreto)
       sarj.position.set(0, -H + 0.03, GUIA.l / 2 + 0.225)
       grupo.add(sarj)
-      const rua = caixaMesh(Cv + 1.2, 0.12, ruaD, COR.asfalto)
+      const rua = caixaMesh(Cv + 1.2, 0.12, ruaD, COR.asfalto, texAsfalto)
       rua.position.set(0, -H, GUIA.l / 2 + 0.45 + ruaD / 2)
       grupo.add(rua)
+
+      // piso tátil no passeio, junto da guia
+      const tatilD = 0.35
+      const tat = caixaMesh(Cv, 0.105, tatilD, COR.tatil)
+      tat.position.set(0, -0.048, -tatilD / 2 - GUIA.l / 2 - 0.08)
+      grupo.add(tat)
+      const nb = Math.max(4, Math.round(Cv * 3))
+      for (let i = 0; i < nb; i++) {
+        const b = caixaMesh(0.035, 0.018, tatilD - 0.06, 0xc9b149)
+        b.position.set(-Cv / 2 + (Cv / nb) * (i + 0.5), 0.008, -tatilD / 2 - GUIA.l / 2 - 0.08)
+        grupo.add(b)
+      }
       raio = Math.max(Cv, passeioD + ruaD) * 0.78 + 1.8
-      altura = 0.44; mira = -0.16
+      altura = 0.3; mira = -0.2
     }
   }
 
@@ -360,7 +441,7 @@ onBeforeUnmount(() => destruir())
 .obra3d{
   position:relative; width:100%; aspect-ratio:3 / 2; border-radius:12px;
   overflow:hidden; cursor:grab; touch-action:pan-y;
-  background:radial-gradient(70% 70% at 50% 35%, #2E323A 0%, #15171C 100%);
+  background:linear-gradient(180deg, #8C98AC 0%, #5E6878 42%, #3A3F49 100%);
 }
 .obra3d:active{ cursor:grabbing; }
 .obra3d :deep(canvas){ display:block; width:100%; height:100%; }
