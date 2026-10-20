@@ -13,7 +13,7 @@ Landing page modelo da **On Track**, feita em **Nuxt 4** (Vue). Sem marca: pront
 ## Por que a calculadora
 Pavimentação se vende por metro quadrado, e quase ninguém sabe informar a metragem nem quanto material a obra pede. A calculadora resolve as duas coisas: a pessoa vê os formatos de peça que você assenta e chega no WhatsApp com a medida e a lista já calculadas, o que encurta a conversa até o orçamento.
 
-Os consumos usados são os usuais de obra (50 peças por m² no bloquete de 20 × 10, colchão de areia de 5 cm, base de 10 cm). Para trabalhar com outros valores, ajuste as constantes no topo de .
+Os consumos usados são os usuais de obra (50 peças por m² no bloquete de 20 × 10, colchão de areia de 5 cm, base de 10 cm). Para trabalhar com outros valores, ajuste as constantes no topo de `app/components/Piso.vue`, junto da lista `pecas`.
 
 ## Como personalizar
 Tudo fica no topo de `app/app.vue`:
