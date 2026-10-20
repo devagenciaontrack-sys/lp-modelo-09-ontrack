@@ -181,8 +181,8 @@ const aberta = ref(0)
         <div class="wrap">
           <div class="cab">
             <p class="chapeu">Antes de pedir o orçamento</p>
-            <h2>Veja como fica e quanto dá</h2>
-            <p class="cab-sub">Informe a medida do espaço e escolha o padrão. O desenho acompanha o tamanho real da área — quanto maior o terreno, menor a peça aparece.</p>
+            <h2>Quanto material a sua obra consome</h2>
+            <p class="cab-sub">Escolha o serviço, o tipo de peça e informe a medida. A conta sai na hora e você manda a lista pronta pelo WhatsApp — é justamente o que a gente precisa saber para fechar o orçamento.</p>
           </div>
           <Piso :whatsapp="site.whatsapp" />
         </div>
