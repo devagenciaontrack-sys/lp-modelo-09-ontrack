@@ -315,3 +315,91 @@ h1 em{ font-style:normal; color:var(--laranja); }
 .flutua svg{ width:27px; height:27px; fill:none; stroke:currentColor; stroke-width:2;
              stroke-linecap:round; stroke-linejoin:round; }
 @media (min-width:900px){ .flutua{ display:none; } }
+
+/* ═══════════════════════════════════════════════
+   Topo e formulário em branco, como na referência
+   ═══════════════════════════════════════════════ */
+.topo{
+  background:#FFFFFF; border-bottom:1px solid #E4E6EA;
+  backdrop-filter:none;
+}
+.topo .marca{ color:#15181E; }
+.topo .marca-ic{ background:rgba(245,158,27,.14); color:#C47F0A; }
+.topo .marca-txt small{ color:#767C88; }
+.topo .tel{ color:#15181E; }
+.topo .tel svg{ color:#767C88; }
+
+/* o formulário vira cartão branco sobre o fundo escuro do topo */
+.orc{
+  background:#FFFFFF; border-color:#E4E6EA; color:#15181E;
+  box-shadow:0 24px 60px -30px rgba(0,0,0,.75);
+}
+.orc .orc-tit{ color:#15181E; }
+.orc .orc-sub{ color:#5A6068; }
+.orc .rot{ color:#767C88; }
+.orc input, .orc select{
+  background:#F7F8F9; border-color:#DDE0E5; color:#15181E;
+}
+.orc input::placeholder{ color:#9AA0AA; }
+.orc select{ color-scheme:light;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23767C88' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+.orc-ops button{ background:#F7F8F9; border-color:#DDE0E5; color:#15181E; }
+.orc-ops button:hover{ border-color:var(--laranja); }
+.orc-ops button.on{ background:var(--laranja); border-color:var(--laranja); color:#17120A; }
+.orc-pe{ color:#767C88; }
+.orc-pe a{ color:#15181E; }
+
+/* ═══════════════════════════════════════════════
+   Dúvidas centralizadas no espaço
+   ═══════════════════════════════════════════════ */
+#duvidas .cab{ margin-inline:auto; text-align:center; }
+#duvidas .cab .chapeu{ display:block; }
+.fq{ margin-inline:auto; }
+
+/* ═══════════════════════════════════════════════
+   Rodapé refeito: três faixas claras em vez de
+   colunas soltas, e centralizado no celular
+   ═══════════════════════════════════════════════ */
+.rodape{ padding-block:0; background:#0A0B0E; }
+.rodape-in{
+  display:grid; gap:0; padding-block:34px 0; text-align:center; justify-items:center;
+}
+.rodape-in > div:first-child{ display:grid; justify-items:center; gap:0; }
+.rod-cnpj{ margin-top:10px; font-size:13px; color:var(--areia); line-height:1.5; }
+.rod-links{
+  justify-content:center; gap:8px 20px; width:100%;
+  margin-top:26px; padding-top:22px; border-top:1px solid var(--linha);
+}
+.rod-links a{ font-size:14px; }
+.rod-cta{
+  justify-items:center; width:100%; gap:14px;
+  margin-top:24px; padding-top:22px; border-top:1px solid var(--linha);
+}
+.rod-cta .btn{ width:100%; max-width:320px; min-height:48px; }
+.rod-tel{ font-size:16px; }
+.rod-fim{ margin-top:28px; }
+@media (min-width:900px){
+  .rodape-in{
+    grid-template-columns:1.1fr 1fr auto; gap:48px; align-items:start;
+    text-align:left; justify-items:stretch; padding-block:46px 0;
+  }
+  .rodape-in > div:first-child{ justify-items:start; }
+  .rod-links{
+    flex-direction:row; flex-wrap:wrap; justify-content:flex-start;
+    margin-top:4px; padding-top:0; border-top:0; gap:10px 24px;
+  }
+  .rod-cta{
+    justify-items:end; margin-top:0; padding-top:0; border-top:0; gap:12px;
+  }
+  .rod-cta .btn{ width:auto; }
+}
+
+/* a seta do select estava duplicando: define o fundo inteiro de uma vez */
+.orc select{
+  background:#F7F8F9
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23767C88' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 12px center / 18px;
+}
+/* o subtítulo da marca não cabe junto do botão em tela estreita */
+@media (max-width:520px){ .marca-txt small{ display:none; } }
