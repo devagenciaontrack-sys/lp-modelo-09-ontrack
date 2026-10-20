@@ -17,9 +17,8 @@ Os quadros cinza em **Obras entregues** e em **Sobre** são espaços reservados.
 ## Como personalizar
 Tudo fica no topo de `app/app.vue`:
 - `site`: nome, slogan, WhatsApp, telefone, responsável, cidade, regiões atendidas (viram as opções do formulário), Instagram, CNPJ, ano de início.
-- `servicosLista`, `etapas`, `obras`, `duvidas`.
+- `etapas`, `obras`, `duvidas`.
 - Cores e fontes: topo de `app/assets/css/main.css` e `nuxt.config.ts`.
-- Fotos: os quadros cinza em `obras` e `sobre` são espaços reservados. Troque por `<img>` com as fotos reais da obra — de preferência antes e depois.
 
 ## Rodar e publicar
 ```
