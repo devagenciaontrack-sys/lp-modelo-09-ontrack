@@ -58,14 +58,14 @@ async function iniciar() {
     bloco: [0xadb0b3, 0xa1a4a8, 0xbabdc0, 0xa8abaf],
     areia: 0x8d8372,
     terra: 0x6b5d4a,
-    grama: 0x5f7342,
+    grama: 0x6f8c3e,
     concreto: 0xc2c4c5,
     guia: 0xd4d6d6,
     guiaFace: 0xbcbec0,
     sarjeta: 0xcbcdcd,
     asfalto: 0x6a6c74,
     faixa: 0xd9c357,
-    tatil: 0xd8c152,
+    tatil: 0xa9553f,
     pintura: 0xe8e4da,
     ferro: 0x33353b,
   }
@@ -138,7 +138,7 @@ async function iniciar() {
     limpar()
     texAsfalto = ruido('#6a6c74', ['#54565e', '#7e818a', '#45474e'], 3400)
     texConcreto = ruido('#c2c4c5', ['#aeb1b2', '#d4d6d6', '#9ea1a3'], 2200)
-    texGrama = ruido('#5f7342', ['#4a5c33', '#74894f', '#3d4d2a'], 3000)
+    texGrama = ruido('#6f8c3e', ['#5b742f', '#86a34f', '#4e6628'], 3600)
     const L = Math.max(1, props.largura)       // profundidade (eixo Z)
     const C = Math.max(1, props.comprimento)   // frente (eixo X)
 
@@ -210,8 +210,8 @@ async function iniciar() {
         g.position.set(x, GUIA.h / 2 - 0.06, z)
         grupo.add(g)
       }
-      raio = Math.max(C, L) * 1.25 + 3
-      altura = 0.5; mira = -0.05
+      raio = Math.max(C, L) * 0.95 + 2
+      altura = 0.44; mira = -0.05
     }
 
     else if (props.servico === 'calcada') {
@@ -231,27 +231,28 @@ async function iniciar() {
       sub.position.set(0, -H + (H - 0.1) / 2, 0)
       grupo.add(sub)
 
-      // placas de concreto de 1 m, com junta entre elas e tom levemente
-      // diferente em cada uma, como acontece na obra de verdade
-      const n = Math.max(1, Math.round(C))
-      const larg = C / n
+      // placas quadradas: junta no comprimento e na largura, como na foto
+      const nx = Math.max(1, Math.round(C))
+      const nz = Math.max(1, Math.round(L))
+      const px = C / nx, pz = L / nz
       const tons = [COR.concreto, 0xbabcbe, 0xcacccd, 0xc6c8c9]
-      for (let i = 0; i < n; i++) {
-        const p = caixaMesh(larg - 0.04, 0.1, L - 0.04, tons[i % tons.length], texConcreto)
-        p.position.set(-C / 2 + larg * (i + 0.5), -0.05, 0)
-        grupo.add(p)
+      for (let i = 0; i < nx; i++) {
+        for (let j = 0; j < nz; j++) {
+          const p = caixaMesh(px - 0.035, 0.1, pz - 0.035, tons[(i + j) % tons.length], texConcreto)
+          p.position.set(-C / 2 + px * (i + 0.5), -0.05, -L / 2 + pz * (j + 0.5))
+          grupo.add(p)
+        }
       }
 
-      // faixa de piso tátil junto da guia, como exige a norma de calçada
-      const tatilD = Math.min(0.4, L * 0.18)
-      const tatil = caixaMesh(C, 0.105, tatilD, COR.tatil)
-      tatil.position.set(0, -0.048, L / 2 - tatilD / 2 - 0.1)
+      // piso tátil direcional correndo pelo meio do passeio, em terracota
+      const tatilD = Math.min(0.42, L * 0.22)
+      const tatil = caixaMesh(C, 0.104, tatilD, COR.tatil)
+      tatil.position.set(0, -0.048, 0)
       grupo.add(tatil)
-      // relevo do piso tátil: barras no sentido do caminho
-      const nb = Math.max(4, Math.round(C * 3))
+      const nb = Math.max(6, Math.round(C * 4))
       for (let i = 0; i < nb; i++) {
-        const b = caixaMesh(0.035, 0.018, tatilD - 0.06, 0xc9b149)
-        b.position.set(-C / 2 + (C / nb) * (i + 0.5), 0.008, L / 2 - tatilD / 2 - 0.1)
+        const b = caixaMesh((C / nb) * 0.42, 0.016, tatilD - 0.08, 0x8e4634)
+        b.position.set(-C / 2 + (C / nb) * (i + 0.5), 0.006, 0)
         grupo.add(b)
       }
 
@@ -291,53 +292,46 @@ async function iniciar() {
     }
 
     else {
-      // vista de detalhe: alguns metros de guia vistos de perto
+      // Conferido em foto: a guia corre entre o asfalto e a grama, com a
+      // sarjeta rente ao chão da rua e o passeio logo atrás.
       const H = GUIA.h
-      const Cv = Math.min(C, 5)
-      const passeioD = 1.8
-      const ruaD = 3
+      const Cv = Math.min(C, 6)
+      const gramaD = 1.1
+      const passeioD = 1.2
+      const ruaD = 3.2
 
-      // passeio no alto da guia
-      const base = caixaMesh(Cv, H - 0.1, passeioD, COR.terra, texConcreto)
-      base.position.set(0, -H + (H - 0.1) / 2, -passeioD / 2 - GUIA.l / 2)
-      grupo.add(base)
-      const passeio = caixaMesh(Cv, 0.1, passeioD, COR.concreto, texConcreto)
-      passeio.position.set(0, -0.05, -passeioD / 2 - GUIA.l / 2)
-      grupo.add(passeio)
+      // rua e sarjeta, no nível mais baixo
+      const rua = caixaMesh(Cv + 1.2, 0.12, ruaD, COR.asfalto, texAsfalto)
+      rua.position.set(0, -H, GUIA.l / 2 + 0.5 + ruaD / 2)
+      grupo.add(rua)
+      const sarj = caixaMesh(Cv, 0.07, 0.5, COR.sarjeta, texConcreto)
+      sarj.position.set(0, -H + 0.035, GUIA.l / 2 + 0.25)
+      grupo.add(sarj)
 
-      // guia em peças de 1 m: fica claro que é vendido por metro
+      // a guia, em peças de 1 m, com o topo levemente mais claro
       const n = Math.max(1, Math.round(Cv / GUIA.c))
       const cada = Cv / n
       for (let i = 0; i < n; i++) {
-        const g = caixaMesh(cada - 0.025, H, GUIA.l, COR.guia, texConcreto)
-        g.position.set(-Cv / 2 + cada * (i + 0.5), -H / 2, 0)
+        const x = -Cv / 2 + cada * (i + 0.5)
+        const g = caixaMesh(cada - 0.02, H, GUIA.l, COR.guia, texConcreto)
+        g.position.set(x, -H / 2, 0)
         grupo.add(g)
-        // pintura branca na face voltada para a rua
-        const f = caixaMesh(cada - 0.03, H * 0.55, 0.014, COR.pintura)
-        f.position.set(-Cv / 2 + cada * (i + 0.5), -H * 0.62, GUIA.l / 2 + 0.008)
-        grupo.add(f)
+        const topo = caixaMesh(cada - 0.02, 0.022, GUIA.l - 0.03, 0xdedfdd)
+        topo.position.set(x, 0.011, 0)
+        grupo.add(topo)
       }
 
-      // sarjeta encostada na guia e asfalto
-      const sarj = caixaMesh(Cv, 0.06, 0.45, COR.sarjeta, texConcreto)
-      sarj.position.set(0, -H + 0.03, GUIA.l / 2 + 0.225)
-      grupo.add(sarj)
-      const rua = caixaMesh(Cv + 1.2, 0.12, ruaD, COR.asfalto, texAsfalto)
-      rua.position.set(0, -H, GUIA.l / 2 + 0.45 + ruaD / 2)
-      grupo.add(rua)
+      // grama do outro lado, no nível do topo da guia
+      const grama = caixaMesh(Cv + 0.6, H - 0.04, gramaD, COR.grama, texGrama)
+      grama.position.set(0, -(H - 0.04) / 2 - 0.02, -GUIA.l / 2 - gramaD / 2)
+      grupo.add(grama)
 
-      // piso tátil no passeio, junto da guia
-      const tatilD = 0.35
-      const tat = caixaMesh(Cv, 0.105, tatilD, COR.tatil)
-      tat.position.set(0, -0.048, -tatilD / 2 - GUIA.l / 2 - 0.08)
-      grupo.add(tat)
-      const nb = Math.max(4, Math.round(Cv * 3))
-      for (let i = 0; i < nb; i++) {
-        const b = caixaMesh(0.035, 0.018, tatilD - 0.06, 0xc9b149)
-        b.position.set(-Cv / 2 + (Cv / nb) * (i + 0.5), 0.008, -tatilD / 2 - GUIA.l / 2 - 0.08)
-        grupo.add(b)
-      }
-      raio = Math.max(Cv, passeioD + ruaD) * 0.78 + 1.8
+      // passeio atrás da grama
+      const passeio = caixaMesh(Cv + 0.6, H - 0.02, passeioD, COR.concreto, texConcreto)
+      passeio.position.set(0, -(H - 0.02) / 2, -GUIA.l / 2 - gramaD - passeioD / 2)
+      grupo.add(passeio)
+
+      raio = Math.max(Cv, gramaD + passeioD + ruaD) * 0.85 + 1.8
       altura = 0.3; mira = -0.2
     }
   }
