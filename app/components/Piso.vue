@@ -30,73 +30,6 @@ const padroes: { id: Padrao, n: string, d: string }[] = [
 ]
 const padraoAtual = computed(() => padroes.find(p => p.id === padrao.value)!)
 
-// ── desenho ──────────────────────────────────────────────────────────────
-// O quadro tem 300 x 200 unidades. A peça é desenhada na proporção real da
-// área informada, então 3 x 4 m mostra bloquete grande e 20 x 30 m, pequeno.
-const Q = { w: 300, h: 200 }
-
-const escala = computed(() => {
-  const l = Math.max(1, largura.value), c = Math.max(1, comprimento.value)
-  return Math.min(Q.w / c, Q.h / l)
-})
-
-type Peca = { x: number, y: number, w: number, h: number, r: number }
-
-const pecasBloquete = computed<Peca[]>(() => {
-  const e = escala.value
-  const cw = PECA.c * e   // comprimento da peça no desenho
-  const ch = PECA.l * e   // largura da peça no desenho
-  if (cw < 2) return []   // área grande demais: vira textura, não peça
-  const out: Peca[] = []
-  const folga = 0.9       // deixa o rejunte aparecer
-
-  if (padrao.value === 'fileira') {
-    const linhas = Math.ceil(Q.h / ch) + 1
-    for (let i = 0; i < linhas; i++) {
-      const y = i * ch
-      const desloca = i % 2 ? cw / 2 : 0
-      for (let x = -cw; x < Q.w + cw; x += cw) {
-        out.push({ x: x + desloca, y, w: cw * folga, h: ch * folga, r: 0 })
-      }
-    }
-  } else if (padrao.value === 'trama') {
-    const lado = cw
-    for (let j = 0; j * lado < Q.h + lado; j++) {
-      for (let i = 0; i * lado < Q.w + lado; i++) {
-        const x = i * lado, y = j * lado
-        if ((i + j) % 2 === 0) {
-          out.push({ x, y, w: cw * folga, h: ch * folga, r: 0 })
-          out.push({ x, y: y + ch, w: cw * folga, h: ch * folga, r: 0 })
-        } else {
-          out.push({ x, y, w: ch * folga, h: cw * folga, r: 0 })
-          out.push({ x: x + ch, y, w: ch * folga, h: cw * folga, r: 0 })
-        }
-      }
-    }
-  } else {
-    // espinha de peixe: fileiras de peças inclinadas, alternando o sentido
-    const passo = cw * Math.SQRT1_2
-    const filas = Math.ceil(Q.h / passo) + 2
-    for (let i = -1; i < filas; i++) {
-      const y = i * passo
-      const sentido = i % 2 === 0 ? -45 : 45
-      const desloca = i % 2 === 0 ? 0 : passo / 2
-      for (let x = -cw; x < Q.w + cw; x += passo) {
-        out.push({ x: x + desloca, y, w: cw * folga, h: ch * folga, r: sentido })
-      }
-    }
-  }
-  return out
-})
-
-// juntas da calçada e emendas do meio-fio: uma a cada metro da obra
-const marcas = computed(() => {
-  const passo = Math.max(16, escala.value)
-  const out: number[] = []
-  for (let x = passo; x < Q.w; x += passo) out.push(x)
-  return out
-})
-
 // ── mensagem pronta ──────────────────────────────────────────────────────
 const nomeServico = computed(() =>
   servico.value === 'bloquete' ? 'pavimentação em bloquete'
@@ -169,64 +102,12 @@ const nf = (v: number, casas = 0) =>
       </p>
     </div>
 
-    <!-- desenho -->
+    <!-- vista 3D da obra -->
     <figure class="piso-quadro">
-      <svg :viewBox="`0 0 ${Q.w} ${Q.h}`" preserveAspectRatio="xMidYMid slice" role="img"
-        :aria-label="`Desenho de ${legenda} na medida informada`">
-        <defs>
-          <clipPath id="recorte"><rect x="0" y="0" :width="Q.w" :height="Q.h" /></clipPath>
-        </defs>
-        <rect x="0" y="0" :width="Q.w" :height="Q.h" fill="#1A1C21" />
-
-        <g clip-path="url(#recorte)">
-          <!-- ── BLOQUETE: o pátio inteiro assentado no padrão escolhido ── -->
-          <template v-if="servico === 'bloquete'">
-            <rect x="0" y="0" :width="Q.w" :height="Q.h" fill="#2A2D34" />
-            <rect v-for="(p, i) in pecasBloquete" :key="i"
-              :x="p.x" :y="p.y" :width="p.w" :height="p.h" rx="0.6"
-              :transform="p.r ? 'rotate(' + p.r + ' ' + (p.x + p.w / 2) + ' ' + (p.y + p.h / 2) + ')' : undefined"
-              :class="['pc', i % 7 === 0 ? 'v1' : i % 5 === 0 ? 'v2' : '']" />
-            <text v-if="!pecasBloquete.length" :x="Q.w / 2" :y="Q.h / 2" class="aviso">
-              área grande · desenho fora de escala
-            </text>
-            <rect x="0" y="0" :width="Q.w" :height="Q.h" fill="none" stroke="#C9CDD6" stroke-width="7" />
-          </template>
-
-          <!-- ── CALÇADA: terreno em cima, passeio no meio, rua embaixo ── -->
-          <template v-else-if="servico === 'calcada'">
-            <rect x="0" y="0" :width="Q.w" height="36" fill="#3C4A33" />
-            <rect x="0" y="31" :width="Q.w" height="5" fill="#4A5B35" />
-            <rect x="0" y="36" :width="Q.w" :height="Q.h - 76" fill="#BABEC5" />
-            <rect x="0" y="36" :width="Q.w" height="3" fill="#CED2D8" />
-            <rect v-for="m in marcas" :key="'j' + m" :x="m" y="36" width="1.6"
-              :height="Q.h - 76" fill="#9DA2AB" />
-            <rect x="0" :y="Q.h - 40" :width="Q.w" height="12" fill="#E2E5EA" />
-            <rect x="0" :y="Q.h - 28" :width="Q.w" height="28" fill="#24262B" />
-            <rect x="0" :y="Q.h - 28" :width="Q.w" height="2" fill="#3A3D44" />
-            <text x="9" y="21" class="rot-cena">terreno</text>
-            <text x="9" :y="Q.h - 31" class="rot-cena esc">guia</text>
-            <text x="9" :y="Q.h - 9" class="rot-cena">rua</text>
-          </template>
-
-          <!-- ── MEIO-FIO: passeio, topo da guia, face, sarjeta e asfalto ── -->
-          <template v-else>
-            <rect x="0" y="0" :width="Q.w" height="76" fill="#BABEC5" />
-            <rect v-for="m in marcas" :key="'p' + m" :x="m" y="0" width="1.4" height="76" fill="#A6ABB3" />
-            <rect x="0" y="76" :width="Q.w" height="18" fill="#E6E9ED" />
-            <rect x="0" y="94" :width="Q.w" height="42" fill="#C4C8CF" />
-            <rect v-for="m in marcas" :key="'g' + m" :x="m" y="76" width="2.2" height="60" fill="#A2A7AF" />
-            <rect x="0" y="132" :width="Q.w" height="4" fill="#8E939B" />
-            <rect x="0" y="136" :width="Q.w" height="20" fill="#D2D6DC" />
-            <rect x="0" y="156" :width="Q.w" :height="Q.h - 156" fill="#24262B" />
-            <rect x="0" y="156" :width="Q.w" height="2" fill="#3A3D44" />
-            <text x="9" y="21" class="rot-cena esc">passeio</text>
-            <text x="9" y="150" class="rot-cena esc">sarjeta</text>
-            <text x="9" :y="Q.h - 9" class="rot-cena">rua</text>
-          </template>
-        </g>
-      </svg>
+      <Obra3D :servico="servico" :padrao="padrao" :largura="largura" :comprimento="comprimento" />
       <figcaption>{{ legenda }} · {{ nf(largura, 1) }} × {{ nf(comprimento, 1) }} m</figcaption>
     </figure>
+
 
     <!-- conta -->
     <div class="piso-conta">
@@ -294,15 +175,6 @@ const nf = (v: number, casas = 0) =>
 .dica-solta{ padding-top:2px; }
 
 .piso-quadro{ margin:0; }
-.piso-quadro svg{ display:block; width:100%; aspect-ratio:3 / 2; border-radius:12px;
-                  background:#1A1C21; }
-.pc{ fill:#8E9099; }
-.pc.v1{ fill:#7C7E87; }
-.pc.v2{ fill:#9B9DA6; }
-.aviso{ fill:var(--areia); font-size:11px; text-anchor:middle; }
-.rot-cena{ fill:#EDEFF2; font-size:9px; font-weight:700; letter-spacing:.14em;
-           text-transform:uppercase; opacity:.8; }
-.rot-cena.esc{ fill:#2A2D34; opacity:.75; }
 .piso-quadro figcaption{ margin-top:10px; font-size:13.5px; color:var(--areia); }
 
 .piso-conta dl{ display:flex; gap:28px; margin:0 0 12px; }
