@@ -5,15 +5,14 @@ Landing page modelo da **On Track**, feita em **Nuxt 4** (Vue). Sem marca: pront
 - **Demonstração:** https://devagenciaontrack-sys.github.io/lp-modelo-09-ontrack/
 
 ## O que tem
-- **Calculadora da obra** (o recurso próprio deste nicho): a pessoa escolhe o serviço, o tipo de peça — retangular, sextavado, raquete ou ondulado, cada um desenhado no formato real — e informa a medida. Sai a lista do que a obra consome: peças, areia de assentamento, base compactada e metros de meio-fio. O botão abre o WhatsApp com a lista já escrita.
-- Formulário curto no topo (nome, serviço, região e metragem) que também cai no WhatsApp com a mensagem pronta.
-- Serviços com o que entra em cada um, etapas da obra da visita à entrega, obras entregues em carrossel, sobre nós, dúvidas e chamada final.
+- Topo com a marca e botão de orçamento, e um formulário curto no primeiro quadro: nome, serviço, região e metragem. Ao enviar, abre o WhatsApp com a mensagem já escrita.
+- **Obras entregues** em carrossel. É a seção que responde "o que fazemos": no lugar de descrever o serviço em texto, as fotos mostram.
+- Como funciona, da visita à entrega, em cinco etapas.
+- Sobre nós, dúvidas frequentes em sanfona e chamada final.
 - Botão de WhatsApp fixo no celular.
 
-## Por que a calculadora
-Pavimentação se vende por metro quadrado, e quase ninguém sabe informar a metragem nem quanto material a obra pede. A calculadora resolve as duas coisas: a pessoa vê os formatos de peça que você assenta e chega no WhatsApp com a medida e a lista já calculadas, o que encurta a conversa até o orçamento.
-
-Os consumos usados são os usuais de obra (50 peças por m² no bloquete de 20 × 10, colchão de areia de 5 cm, base de 10 cm). Para trabalhar com outros valores, ajuste as constantes no topo de `app/components/Piso.vue`, junto da lista `pecas`.
+## Sobre as fotos
+Os quadros cinza em **Obras entregues** e em **Sobre** são espaços reservados. Troque pelas fotos reais, de preferência com antes e depois, que é o que mais convence neste serviço. A legenda de cada obra leva a metragem e o padrão, por exemplo "80 m² · espinha de peixe".
 
 ## Como personalizar
 Tudo fica no topo de `app/app.vue`:

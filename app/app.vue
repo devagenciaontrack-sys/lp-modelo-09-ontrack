@@ -32,29 +32,6 @@ const linkTopo = computed(() => {
   return wa(l.join('\n'))
 })
 
-const servicosLista = [
-  {
-    t: 'Bloquete intertravado',
-    d: 'Entrada de carro, pátio e estacionamento. Suporta peso sem rachar e pode ser removido para manutenção sem quebrar o piso.',
-    itens: ['Preparo e compactação do solo', 'Colchão de areia nivelado', 'Assentamento e rejunte', 'Compactação final'],
-  },
-  {
-    t: 'Meio-fio e sarjeta',
-    d: 'Delimita o canteiro, segura o aterro e dá acabamento. Feito no local ou pré-moldado, conforme o traçado da obra.',
-    itens: ['Marcação do alinhamento', 'Escavação da vala', 'Assentamento nivelado', 'Rejunte e acabamento'],
-  },
-  {
-    t: 'Calçada e passeio',
-    d: 'Calçada em concreto ou bloquete, com caimento correto para a água escoar e dentro da largura exigida pela prefeitura.',
-    itens: ['Fôrma e armação', 'Concretagem', 'Desempeno e juntas', 'Rampa de acesso quando couber'],
-  },
-  {
-    t: 'Drenagem e nivelamento',
-    d: 'Quando a água empoça, o problema é o caimento. Corrigimos o nível antes de assentar, senão o piso afunda depois.',
-    itens: ['Leitura do caimento', 'Correção da base', 'Canaleta quando necessário', 'Teste com água'],
-  },
-]
-
 const etapas = [
   { n: 'Visita', d: 'Vamos até a obra, medimos e vemos o estado do solo. Sem custo.' },
   { n: 'Orçamento', d: 'Você recebe o valor fechado por escrito, com prazo e o que está incluso.' },
@@ -176,33 +153,22 @@ const aberta = ref(0)
         </div>
       </section>
 
-      <!-- ══════════ SIMULADOR (recurso do nicho) ══════════ -->
-      <section id="simulador" class="sec sim">
-        <div class="wrap">
-          <div class="cab">
-            <p class="chapeu">Antes de pedir o orçamento</p>
-            <h2>Quanto material a sua obra consome</h2>
-            <p class="cab-sub">Escolha o serviço, o tipo de peça e informe a medida. A conta sai na hora e você manda a lista pronta pelo WhatsApp — é justamente o que a gente precisa saber para fechar o orçamento.</p>
-          </div>
-          <Piso :whatsapp="site.whatsapp" />
-        </div>
-      </section>
-
-      <!-- ══════════ SERVIÇOS ══════════ -->
-      <section id="servicos" class="sec">
+      <!-- ══════════ OBRAS ══════════ -->
+      <!-- As fotos fazem o papel da antiga lista de serviços: mostram o que
+           a empresa faz em vez de descrever. TODO: trocar os quadros pelas
+           fotos reais, de preferência com antes e depois. -->
+      <section id="obras" class="sec obras-sec">
         <div class="wrap">
           <div class="cab">
             <p class="chapeu">O que fazemos</p>
-            <h2>Serviço completo, do solo ao rejunte</h2>
+            <h2>Obras entregues</h2>
+            <p class="cab-sub arraste">Arraste para o lado para ver mais</p>
           </div>
-          <div class="serv">
-            <article v-for="s in servicosLista" :key="s.t" class="serv-c">
-              <h3>{{ s.t }}</h3>
-              <p>{{ s.d }}</p>
-              <ul>
-                <li v-for="i in s.itens" :key="i">{{ i }}</li>
-              </ul>
-            </article>
+          <div class="obras">
+            <figure v-for="(o, i) in obras" :key="o.t" :class="`ob o${i % 3}`">
+              <div class="ob-ph"><span>Foto da obra</span></div>
+              <figcaption><b>{{ o.t }}</b><span>{{ o.m }}</span></figcaption>
+            </figure>
           </div>
         </div>
       </section>
@@ -220,23 +186,6 @@ const aberta = ref(0)
               <div><b>{{ e.n }}</b><p>{{ e.d }}</p></div>
             </li>
           </ol>
-        </div>
-      </section>
-
-      <!-- ══════════ OBRAS ══════════ -->
-      <section id="obras" class="sec">
-        <div class="wrap">
-          <div class="cab">
-            <p class="chapeu">Trabalhos entregues</p>
-            <h2>Obras que já fizemos</h2>
-            <p class="cab-sub arraste">Arraste para o lado para ver mais</p>
-          </div>
-          <div class="obras">
-            <figure v-for="(o, i) in obras" :key="o.t" :class="`ob o${i % 3}`">
-              <div class="ob-ph"><span>Foto da obra</span></div>
-              <figcaption><b>{{ o.t }}</b><span>{{ o.m }}</span></figcaption>
-            </figure>
-          </div>
         </div>
       </section>
 
@@ -306,8 +255,6 @@ const aberta = ref(0)
           <p class="rod-cnpj">CNPJ {{ site.cnpj }} · {{ site.cidade }}</p>
         </div>
         <nav class="rod-links" aria-label="Seções">
-          <a href="#simulador">Simulador</a>
-          <a href="#servicos">Serviços</a>
           <a href="#como">Como funciona</a>
           <a href="#obras">Obras</a>
           <a href="#duvidas">Dúvidas</a>
